@@ -1,4 +1,12 @@
-.gradle/
+﻿.gradle/
 build/
 out/
-
+.idea/
+*.iml
+.classpath
+.project
+.settings/
+bin/
+*.log
+.env
+.env.local
