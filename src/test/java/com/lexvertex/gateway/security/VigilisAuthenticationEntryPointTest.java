@@ -13,7 +13,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class VigilisAuthenticationEntryPointTest {
 
-    private final VigilisAuthenticationEntryPoint entryPoint = new VigilisAuthenticationEntryPoint();
+    private final VigilisAuthenticationEntryPoint entryPoint =
+            new VigilisAuthenticationEntryPoint(GatewayConstants.LEXVERTEX_LOGIN_URL);
 
     @Test
     void redirectsHtmlOnVigilisHost() {
@@ -33,6 +34,25 @@ class VigilisAuthenticationEntryPointTest {
         assertThat(exchange.getResponse().getHeaders().getLocation().getQuery())
                 .contains("redirect_uri=")
                 .contains("vigilis.lexvertex.cloud");
+    }
+
+    @Test
+    void redirectsHtmlOnLocalVigilisPath() {
+        final VigilisAuthenticationEntryPoint localEntry =
+                new VigilisAuthenticationEntryPoint("http://localhost:8089/login");
+        final MockServerWebExchange exchange = MockServerWebExchange.from(
+                MockServerHttpRequest.get("http://localhost:8080/vigilis/dashboard")
+                        .header(GatewayConstants.HEADER_HOST, "localhost:8080")
+                        .header(HttpHeaders.ACCEPT, MediaType.TEXT_HTML_VALUE)
+                        .build());
+
+        localEntry.commence(exchange, new BadCredentialsException("no auth")).block();
+
+        assertThat(exchange.getResponse().getStatusCode()).isEqualTo(HttpStatus.FOUND);
+        assertThat(exchange.getResponse().getHeaders().getLocation())
+                .isNotNull()
+                .hasHost("localhost")
+                .hasPath("/login");
     }
 
     @Test

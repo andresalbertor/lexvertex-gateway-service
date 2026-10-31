@@ -29,6 +29,7 @@ import org.springframework.security.web.server.SecurityWebFilterChain;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.reactive.CorsConfigurationSource;
 import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource;
+import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.server.WebFilter;
 import reactor.core.publisher.Mono;
 
@@ -69,6 +70,8 @@ public class SecurityConfig {
                 .authorizeExchange(exchange -> exchange
                         .pathMatchers(HttpMethod.OPTIONS, GatewayConstants.PATH_ALL).permitAll()
                         .pathMatchers(GatewayConstants.PUBLIC_PATHS).permitAll()
+                        .pathMatchers(GatewayConstants.PATH_ACTUATOR_GATEWAY)
+                        .hasRole(GatewayConstants.ROLE_ADMIN)
                         .anyExchange().authenticated())
                 .oauth2ResourceServer(oauth2 -> oauth2
                         .bearerTokenConverter(bearerConverter)
@@ -78,39 +81,56 @@ public class SecurityConfig {
     }
 
     /**
-     * Bloquea APIs cuando el JWT exige cambio de contraseña. En navegación HTML (p. ej. Vigilís)
-     * redirige a la pantalla de seguridad en vez de un 403 vacío (Chrome “HTTP ERROR 403”).
+     * Bloquea el resto de rutas cuando el JWT exige cambio de contraseña.
+     * En Vigilís (host o path) redirige siempre (302) a la pantalla de seguridad;
+     * en otros hosts el 302 aplica a navegación HTML y el 403 a clientes API.
      *
+     * @param passwordChangeUrl URL de cambio de contraseña ({@code app.sso.password-change-url})
      * @return instancia reactiva de {@link WebFilter}
      */
     @Bean
     @Order(Ordered.LOWEST_PRECEDENCE - 10)
-    WebFilter forcedPasswordChangeFilter() {
+    WebFilter forcedPasswordChangeFilter(
+            @Value("${app.sso.password-change-url:" + GatewayConstants.LEXVERTEX_PASSWORD_CHANGE_URL + "}")
+            final String passwordChangeUrl
+    ) {
+        final String target = passwordChangeUrl == null || passwordChangeUrl.isBlank()
+                ? GatewayConstants.LEXVERTEX_PASSWORD_CHANGE_URL
+                : passwordChangeUrl.trim();
         return (exchange, chain) -> exchange.getPrincipal()
+                .filter(JwtAuthenticationToken.class::isInstance)
                 .cast(JwtAuthenticationToken.class)
-                .flatMap(authentication -> {
-                    final boolean mustChange = Boolean.TRUE.equals(
-                            authentication.getToken().getClaim(GatewayConstants.CLAIM_MUST_CHANGE_PASSWORD));
-                    final String path = exchange.getRequest().getPath().value();
-                    final boolean allowed = Strings.CS.equals(path, GatewayConstants.PATH_AUTH_PASSWORD_CHANGE)
-                            || Strings.CS.equals(path, GatewayConstants.PATH_AUTH_LOGOUT)
-                            || Strings.CS.equals(path, GatewayConstants.PATH_AUTH_REFRESH)
-                            || Strings.CS.startsWith(path, GatewayConstants.PATH_PROFILE_SECURITY);
-                    if (mustChange && !allowed) {
-                        if (wantsHtmlNavigation(exchange.getRequest().getHeaders())) {
-                            exchange.getResponse().setStatusCode(HttpStatus.FOUND);
-                            exchange.getResponse().getHeaders().setLocation(
-                                    URI.create(GatewayConstants.LEXVERTEX_PASSWORD_CHANGE_URL));
-                            return exchange.getResponse().setComplete();
-                        }
-                        exchange.getResponse().setStatusCode(HttpStatus.FORBIDDEN);
-                        return exchange.getResponse().setComplete();
-                    }
-                    return chain.filter(exchange);
-                })
-                .switchIfEmpty(chain.filter(exchange));
+                .filter(authentication -> isBlockedByForcedPasswordChange(authentication, exchange))
+                .map(authentication -> Boolean.TRUE)
+                .defaultIfEmpty(Boolean.FALSE)
+                .flatMap(blocked -> blocked ? rejectPendingPasswordChange(exchange, target) : chain.filter(exchange));
     }
 
+    private static boolean isBlockedByForcedPasswordChange(
+            final JwtAuthenticationToken authentication,
+            final ServerWebExchange exchange
+    ) {
+        final boolean mustChange = Boolean.TRUE.equals(
+                authentication.getToken().getClaim(GatewayConstants.CLAIM_MUST_CHANGE_PASSWORD));
+        final String path = exchange.getRequest().getPath().value();
+        final boolean allowed = Strings.CS.equals(path, GatewayConstants.PATH_AUTH_PASSWORD_CHANGE)
+                || Strings.CS.equals(path, GatewayConstants.PATH_AUTH_LOGOUT)
+                || Strings.CS.equals(path, GatewayConstants.PATH_AUTH_REFRESH)
+                || Strings.CS.startsWith(path, GatewayConstants.PATH_PROFILE_SECURITY);
+        return mustChange && !allowed;
+    }
+
+    private static Mono<Void> rejectPendingPasswordChange(final ServerWebExchange exchange, final String target) {
+        final HttpHeaders headers = exchange.getRequest().getHeaders();
+        if (VigilisAuthenticationEntryPoint.isVigilisRequest(exchange.getRequest())
+                || wantsHtmlNavigation(headers)) {
+            exchange.getResponse().setStatusCode(HttpStatus.FOUND);
+            exchange.getResponse().getHeaders().setLocation(URI.create(target));
+            return exchange.getResponse().setComplete();
+        }
+        exchange.getResponse().setStatusCode(HttpStatus.FORBIDDEN);
+        return exchange.getResponse().setComplete();
+    }
     private static boolean wantsHtmlNavigation(final HttpHeaders headers) {
         final String accept = headers.getFirst(HttpHeaders.ACCEPT);
         if (accept == null || accept.isBlank()) {
