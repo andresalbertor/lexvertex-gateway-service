@@ -43,7 +43,15 @@ public class PermissionHeaderFilter implements GlobalFilter, Ordered {
                 .filter(auth -> auth instanceof JwtAuthenticationToken)
                 .cast(JwtAuthenticationToken.class)
                 .flatMap(jwtAuth -> {
-                    final List<String> roles = jwtAuth.getToken().getClaimAsStringList(GatewayConstants.CLAIM_ROLES);
+                    List<String> roles = jwtAuth.getToken().getClaimAsStringList(GatewayConstants.CLAIM_ROLES);
+                    if (CollectionUtils.isEmpty(roles)) {
+                        roles = jwtAuth.getAuthorities().stream()
+                                .map(a -> a.getAuthority())
+                                .filter(a -> a != null && a.startsWith(GatewayConstants.ROLE_PREFIX))
+                                .map(a -> a.substring(GatewayConstants.ROLE_PREFIX.length()))
+                                .distinct()
+                                .toList();
+                    }
                     if (CollectionUtils.isEmpty(roles)) {
                         return chain.filter(mutatedExchange);
                     }

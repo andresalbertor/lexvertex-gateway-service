@@ -123,6 +123,9 @@ public final class GatewayConstants {
     /** Cookie HttpOnly con el access JWT para SSO entre subdominios. */
     public static final String COOKIE_ACCESS_DEFAULT = "lex_access";
 
+    /** Esquema Bearer para cabecera Authorization. */
+    public static final String TOKEN_SCHEME_BEARER = "Bearer";
+
     /** URL de login de Lex Vertex (destino del redirect SSO desde Vigilís). */
     public static final String LEXVERTEX_LOGIN_URL = "https://www.lexvertex.cloud/login";
 
