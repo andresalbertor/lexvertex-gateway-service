@@ -1,7 +1,7 @@
 name: CD develop
 on:
   push:
-    branches: [develop]
+    branches: [master]
   workflow_dispatch:
 permissions:
   contents: read
