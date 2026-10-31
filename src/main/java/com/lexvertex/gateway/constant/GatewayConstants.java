@@ -116,17 +116,18 @@ public final class GatewayConstants {
             "/.well-known/**",
             "/actuator/health",
             "/actuator/info",
-            // Vigilís (público temporal: UI, estáticos, Swagger y health)
-            "/view",
-            "/view/**",
-            "/static/**",
-            "/docs",
-            "/docs/**",
-            "/redoc",
-            "/redoc/**",
-            "/openapi.json",
+            // Health de servicios detrás del gateway (p. ej. Vigilís)
             "/api/v1/health"
     };
+
+    /** Cookie HttpOnly con el access JWT para SSO entre subdominios. */
+    public static final String COOKIE_ACCESS_DEFAULT = "lex_access";
+
+    /** URL de login de Lex Vertex (destino del redirect SSO desde Vigilís). */
+    public static final String LEXVERTEX_LOGIN_URL = "https://www.lexvertex.cloud/login";
+
+    /** Query param de retorno post-login hacia la app origen. */
+    public static final String QUERY_REDIRECT_URI = "redirect_uri";
 
     /**
      * Prefijo de la API Lexvertex versionada.

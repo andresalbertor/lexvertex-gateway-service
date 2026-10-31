@@ -1,6 +1,8 @@
 package com.lexvertex.gateway.config;
 
 import com.lexvertex.gateway.constant.GatewayConstants;
+import com.lexvertex.gateway.security.CookieBearerTokenAuthenticationConverter;
+import com.lexvertex.gateway.security.VigilisAuthenticationEntryPoint;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.Strings;
 import org.springframework.beans.factory.annotation.Value;
@@ -20,7 +22,6 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtAut
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.security.oauth2.server.resource.authentication.ReactiveJwtAuthenticationConverterAdapter;
 import org.springframework.security.web.server.SecurityWebFilterChain;
-import org.springframework.security.web.server.util.matcher.ServerWebExchangeMatcher;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.reactive.CorsConfigurationSource;
 import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource;
@@ -45,39 +46,30 @@ public class SecurityConfig {
     /**
      * Configura la cadena de filtros de seguridad reactiva definiendo rutas públicas y servidor de recursos JWT.
      *
-     * @param http configurador reactivo de seguridad HTTP
+     * @param http               configurador reactivo de seguridad HTTP
+     * @param bearerConverter    Authorization Bearer o cookie {@code lex_access}
+     * @param vigilisEntryPoint  redirect SSO HTML hacia login de Lex Vertex en host Vigilís
      * @return cadena reactiva {@link SecurityWebFilterChain} construida
      */
     @Bean
-    SecurityWebFilterChain securityWebFilterChain(final ServerHttpSecurity http) {
+    SecurityWebFilterChain securityWebFilterChain(
+            final ServerHttpSecurity http,
+            final CookieBearerTokenAuthenticationConverter bearerConverter,
+            final VigilisAuthenticationEntryPoint vigilisEntryPoint
+    ) {
         http
                 .cors(Customizer.withDefaults())
                 .csrf(ServerHttpSecurity.CsrfSpec::disable)
+                .exceptionHandling(exceptions -> exceptions.authenticationEntryPoint(vigilisEntryPoint))
                 .authorizeExchange(exchange -> exchange
                         .pathMatchers(HttpMethod.OPTIONS, GatewayConstants.PATH_ALL).permitAll()
                         .pathMatchers(GatewayConstants.PUBLIC_PATHS).permitAll()
-                        // Host dedicado: todo el tráfico de Vigilís (auth propia de la app).
-                        .matchers(vigilisHostMatcher()).permitAll()
                         .anyExchange().authenticated())
-                .oauth2ResourceServer(oauth2 -> oauth2.jwt(
-                        jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter())));
+                .oauth2ResourceServer(oauth2 -> oauth2
+                        .bearerTokenConverter(bearerConverter)
+                        .authenticationEntryPoint(vigilisEntryPoint)
+                        .jwt(jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter())));
         return http.build();
-    }
-
-    /**
-     * Coincide con el hostname público de Vigilís.
-     *
-     * @return matcher por Host {@code vigilis.lexvertex.cloud}
-     */
-    private static ServerWebExchangeMatcher vigilisHostMatcher() {
-        return exchange -> {
-            final String host = exchange.getRequest().getHeaders().getFirst(GatewayConstants.HEADER_HOST);
-            final boolean match = host != null
-                    && Strings.CI.startsWith(host, GatewayConstants.VIGILIS_HOST);
-            return match
-                    ? ServerWebExchangeMatcher.MatchResult.match()
-                    : ServerWebExchangeMatcher.MatchResult.notMatch();
-        };
     }
 
     /**
