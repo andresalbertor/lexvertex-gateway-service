@@ -120,21 +120,30 @@ public final class GatewayConstants {
             "/api/v1/health"
     };
 
+    /** Ruta del actuator de Spring Cloud Gateway (solo ADMIN). */
+    public static final String PATH_ACTUATOR_GATEWAY = "/actuator/gateway/**";
+
+    /** Código de rol administrador (sin prefijo ROLE_; ver estandarización ADMN). */
+    public static final String ROLE_ADMIN = "ADMN";
+
     /** Cookie HttpOnly con el access JWT para SSO entre subdominios. */
     public static final String COOKIE_ACCESS_DEFAULT = "lex_access";
 
     /** Esquema Bearer para cabecera Authorization. */
     public static final String TOKEN_SCHEME_BEARER = "Bearer";
 
-    /** URL de login de Lex Vertex (destino del redirect SSO desde Vigilís). */
+    /** Fallback prod: login Lex Vertex (sobrescribir con app.sso.login-url). */
     public static final String LEXVERTEX_LOGIN_URL = "https://www.lexvertex.cloud/login";
 
-    /** Pantalla de cambio de contraseña obligatorio en Lex Vertex. */
+    /** Fallback prod: cambio de contraseña (sobrescribir con app.sso.password-change-url). */
     public static final String LEXVERTEX_PASSWORD_CHANGE_URL =
             "https://www.lexvertex.cloud/profile/security";
 
     /** Prefijo de rutas de perfil/seguridad permitidas con mustChangePassword. */
     public static final String PATH_PROFILE_SECURITY = "/profile/security";
+
+    /** Prefijo de path local de Vigilís detrás del gateway (PROFILE=dev). */
+    public static final String PATH_VIGILIS_PREFIX = "/vigilis";
 
     /** Query param de retorno post-login hacia la app origen. */
     public static final String QUERY_REDIRECT_URI = "redirect_uri";
@@ -149,6 +158,9 @@ public final class GatewayConstants {
 
     /** Hostname público de Vigilís (sin puerto). */
     public static final String VIGILIS_HOST = "vigilis.lexvertex.cloud";
+
+    /** Host local de desarrollo para Vigilís. */
+    public static final String VIGILIS_HOST_LOCAL = "vigilis.localhost";
 
     /** Cabecera Host HTTP. */
     public static final String HEADER_HOST = "Host";

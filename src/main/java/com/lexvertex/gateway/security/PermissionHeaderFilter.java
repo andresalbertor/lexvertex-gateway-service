@@ -14,6 +14,7 @@ import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Filtro global de API Gateway para propagar los permisos del usuario en la cabecera
@@ -42,7 +43,13 @@ public class PermissionHeaderFilter implements GlobalFilter, Ordered {
                 .map(SecurityContext::getAuthentication)
                 .filter(auth -> auth instanceof JwtAuthenticationToken)
                 .cast(JwtAuthenticationToken.class)
-                .flatMap(jwtAuth -> {
+                .map(Optional::of)
+                .defaultIfEmpty(Optional.empty())
+                .flatMap(maybeAuth -> {
+                    if (maybeAuth.isEmpty()) {
+                        return chain.filter(mutatedExchange);
+                    }
+                    final JwtAuthenticationToken jwtAuth = maybeAuth.get();
                     List<String> roles = jwtAuth.getToken().getClaimAsStringList(GatewayConstants.CLAIM_ROLES);
                     if (CollectionUtils.isEmpty(roles)) {
                         roles = jwtAuth.getAuthorities().stream()
@@ -74,8 +81,7 @@ public class PermissionHeaderFilter implements GlobalFilter, Ordered {
                                         .build();
                                 return chain.filter(withHeaders);
                             });
-                })
-                .switchIfEmpty(chain.filter(mutatedExchange));
+                });
     }
 
     @Override
