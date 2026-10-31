@@ -9,8 +9,12 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.convert.converter.Converter;
+import org.springframework.core.Ordered;
+import org.springframework.core.annotation.Order;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
@@ -28,6 +32,7 @@ import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource;
 import org.springframework.web.server.WebFilter;
 import reactor.core.publisher.Mono;
 
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -73,12 +78,13 @@ public class SecurityConfig {
     }
 
     /**
-     * Registra un filtro reactivo que bloquea el acceso a recursos protegidos cuando el usuario
-     * autenticado tiene pendiente un cambio obligatorio de contraseña.
+     * Bloquea APIs cuando el JWT exige cambio de contraseña. En navegación HTML (p. ej. Vigilís)
+     * redirige a la pantalla de seguridad en vez de un 403 vacío (Chrome “HTTP ERROR 403”).
      *
      * @return instancia reactiva de {@link WebFilter}
      */
     @Bean
+    @Order(Ordered.LOWEST_PRECEDENCE - 10)
     WebFilter forcedPasswordChangeFilter() {
         return (exchange, chain) -> exchange.getPrincipal()
                 .cast(JwtAuthenticationToken.class)
@@ -88,14 +94,35 @@ public class SecurityConfig {
                     final String path = exchange.getRequest().getPath().value();
                     final boolean allowed = Strings.CS.equals(path, GatewayConstants.PATH_AUTH_PASSWORD_CHANGE)
                             || Strings.CS.equals(path, GatewayConstants.PATH_AUTH_LOGOUT)
-                            || Strings.CS.equals(path, GatewayConstants.PATH_AUTH_REFRESH);
+                            || Strings.CS.equals(path, GatewayConstants.PATH_AUTH_REFRESH)
+                            || Strings.CS.startsWith(path, GatewayConstants.PATH_PROFILE_SECURITY);
                     if (mustChange && !allowed) {
+                        if (wantsHtmlNavigation(exchange.getRequest().getHeaders())) {
+                            exchange.getResponse().setStatusCode(HttpStatus.FOUND);
+                            exchange.getResponse().getHeaders().setLocation(
+                                    URI.create(GatewayConstants.LEXVERTEX_PASSWORD_CHANGE_URL));
+                            return exchange.getResponse().setComplete();
+                        }
                         exchange.getResponse().setStatusCode(HttpStatus.FORBIDDEN);
                         return exchange.getResponse().setComplete();
                     }
                     return chain.filter(exchange);
                 })
                 .switchIfEmpty(chain.filter(exchange));
+    }
+
+    private static boolean wantsHtmlNavigation(final HttpHeaders headers) {
+        final String accept = headers.getFirst(HttpHeaders.ACCEPT);
+        if (accept == null || accept.isBlank()) {
+            return true;
+        }
+        final String lower = accept.toLowerCase();
+        if (lower.contains(MediaType.APPLICATION_JSON_VALUE) && !lower.contains(MediaType.TEXT_HTML_VALUE)) {
+            return false;
+        }
+        return lower.contains(MediaType.TEXT_HTML_VALUE)
+                || lower.contains("*/*")
+                || lower.contains("text/*");
     }
 
     /**

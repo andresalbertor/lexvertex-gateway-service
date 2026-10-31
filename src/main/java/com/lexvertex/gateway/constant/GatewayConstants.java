@@ -129,6 +129,13 @@ public final class GatewayConstants {
     /** URL de login de Lex Vertex (destino del redirect SSO desde Vigilís). */
     public static final String LEXVERTEX_LOGIN_URL = "https://www.lexvertex.cloud/login";
 
+    /** Pantalla de cambio de contraseña obligatorio en Lex Vertex. */
+    public static final String LEXVERTEX_PASSWORD_CHANGE_URL =
+            "https://www.lexvertex.cloud/profile/security";
+
+    /** Prefijo de rutas de perfil/seguridad permitidas con mustChangePassword. */
+    public static final String PATH_PROFILE_SECURITY = "/profile/security";
+
     /** Query param de retorno post-login hacia la app origen. */
     public static final String QUERY_REDIRECT_URI = "redirect_uri";
 
