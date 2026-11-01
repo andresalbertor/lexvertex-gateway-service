@@ -211,5 +211,53 @@ class SecurityConfigForcedPasswordChangeFilterTest {
         assertThat(cors.getAllowCredentials()).isTrue();
         assertThat(cors.getMaxAge()).isEqualTo(GatewayConstants.CORS_MAX_AGE_SECONDS);
     }
-}
+    @Test
+    void redirectsWhenSecFetchModeNavigate() {
+        final MockServerHttpRequest.BaseBuilder<?> req = MockServerHttpRequest.post("/configuracion/sic/criterios/1/buscar-rango")
+                .header("Sec-Fetch-Mode", "navigate")
+                .header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE);
+        final ServerWebExchange ex = MockServerWebExchange.from(req.build())
+                .mutate().principal(Mono.just(jwtAuth(true))).build();
 
+        assertThat(runAndReportChainCalled(ex, filter)).isFalse();
+        assertThat(ex.getResponse().getStatusCode()).isEqualTo(HttpStatus.FOUND);
+        assertThat(ex.getResponse().getHeaders().getLocation()).isEqualTo(URI.create(TARGET));
+    }
+
+    @Test
+    void redirectsWhenSecFetchDestDocument() {
+        final MockServerHttpRequest.BaseBuilder<?> req = MockServerHttpRequest.post("/configuracion/sic/criterios/1/buscar-rango")
+                .header("Sec-Fetch-Dest", "document")
+                .header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE);
+        final ServerWebExchange ex = MockServerWebExchange.from(req.build())
+                .mutate().principal(Mono.just(jwtAuth(true))).build();
+
+        assertThat(runAndReportChainCalled(ex, filter)).isFalse();
+        assertThat(ex.getResponse().getStatusCode()).isEqualTo(HttpStatus.FOUND);
+    }
+
+    @Test
+    void redirectsWhenHxRequestPresent() {
+        final MockServerHttpRequest.BaseBuilder<?> req = MockServerHttpRequest.post("/configuracion/sic/criterios/1/buscar-rango")
+                .header("HX-Request", "true")
+                .header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE);
+        final ServerWebExchange ex = MockServerWebExchange.from(req.build())
+                .mutate().principal(Mono.just(jwtAuth(true))).build();
+
+        assertThat(runAndReportChainCalled(ex, filter)).isFalse();
+        assertThat(ex.getResponse().getStatusCode()).isEqualTo(HttpStatus.FOUND);
+    }
+
+    @Test
+    void redirectsOnVigilisHostViaXForwardedHost() {
+        final MockServerHttpRequest.BaseBuilder<?> req = MockServerHttpRequest.post("/configuracion/sic/criterios/1/buscar-rango")
+                .header("X-Forwarded-Host", GatewayConstants.VIGILIS_HOST)
+                .header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE);
+        final ServerWebExchange ex = MockServerWebExchange.from(req.build())
+                .mutate().principal(Mono.just(jwtAuth(true))).build();
+
+        assertThat(runAndReportChainCalled(ex, filter)).isFalse();
+        assertThat(ex.getResponse().getStatusCode()).isEqualTo(HttpStatus.FOUND);
+    }
+
+}

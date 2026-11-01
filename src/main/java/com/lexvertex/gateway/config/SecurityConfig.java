@@ -132,6 +132,17 @@ public class SecurityConfig {
         return exchange.getResponse().setComplete();
     }
     private static boolean wantsHtmlNavigation(final HttpHeaders headers) {
+        final String fetchMode = headers.getFirst("Sec-Fetch-Mode");
+        if (Strings.CI.equals(fetchMode, "navigate")) {
+            return true;
+        }
+        final String fetchDest = headers.getFirst("Sec-Fetch-Dest");
+        if (Strings.CI.equals(fetchDest, "document")) {
+            return true;
+        }
+        if (headers.getFirst("HX-Request") != null) {
+            return true;
+        }
         final String accept = headers.getFirst(HttpHeaders.ACCEPT);
         if (accept == null || accept.isBlank()) {
             return true;
