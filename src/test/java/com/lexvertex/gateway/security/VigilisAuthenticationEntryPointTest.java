@@ -81,4 +81,22 @@ class VigilisAuthenticationEntryPointTest {
 
         assertThat(exchange.getResponse().getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
     }
+
+    @Test
+    void redirectsHtmlWhenXForwardedHostIsVigilis() {
+        final MockServerWebExchange exchange = MockServerWebExchange.from(
+                MockServerHttpRequest.get("http://gateway-service:8080/view/")
+                        .header("X-Forwarded-Host", GatewayConstants.VIGILIS_HOST)
+                        .header(HttpHeaders.ACCEPT, MediaType.TEXT_HTML_VALUE)
+                        .build());
+
+        entryPoint.commence(exchange, new BadCredentialsException("no auth")).block();
+
+        assertThat(exchange.getResponse().getStatusCode()).isEqualTo(HttpStatus.FOUND);
+        assertThat(exchange.getResponse().getHeaders().getLocation())
+                .isNotNull()
+                .hasHost("www.lexvertex.cloud")
+                .hasPath("/login");
+    }
+
 }

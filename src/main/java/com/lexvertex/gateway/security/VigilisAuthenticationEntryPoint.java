@@ -59,7 +59,9 @@ public class VigilisAuthenticationEntryPoint implements ServerAuthenticationEntr
     }
 
     public static boolean isVigilisRequest(final ServerHttpRequest request) {
-        final String host = request.getHeaders().getFirst(GatewayConstants.HEADER_HOST);
+        final String forwardedHost = request.getHeaders().getFirst("X-Forwarded-Host");
+        final String hostHeader = request.getHeaders().getFirst(GatewayConstants.HEADER_HOST);
+        final String host = StringUtilsOrDefault(forwardedHost, hostHeader);
         if (host != null) {
             final String hostOnly = host.contains(":") ? host.substring(0, host.indexOf(':')) : host;
             if (Strings.CI.startsWith(hostOnly, GatewayConstants.VIGILIS_HOST)
