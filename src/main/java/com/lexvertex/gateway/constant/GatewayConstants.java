@@ -56,6 +56,9 @@ public final class GatewayConstants {
     /** Nombre del claim del token JWT que indica cambio obligatorio de contraseña. */
     public static final String CLAIM_MUST_CHANGE_PASSWORD = "mustChangePassword";
 
+    /** Nombre del claim del token JWT que indica consentimientos USR pendientes. */
+    public static final String CLAIM_MUST_ACCEPT_CONSENTS = "mustAcceptConsents";
+
     /** Prefijo estándar de Spring Security para autoridades basadas en rol. */
     public static final String ROLE_PREFIX = "ROLE_";
 
@@ -113,12 +116,25 @@ public final class GatewayConstants {
             "/api/v1/auth/password/recovery-options",
             "/api/v1/auth/invitations/**",
             "/api/v1/auth/email/**",
+            "/api/v1/account/public/consents/**",
             "/.well-known/**",
             "/actuator/health",
             "/actuator/info",
             // Health de servicios detrás del gateway (p. ej. Vigilís)
             "/api/v1/health"
     };
+
+    /** Prefijo de APIs de consentimiento autenticado (gate post-2FA). */
+    public static final String PATH_AUTH_CONSENTS = "/api/v1/auth/consents";
+
+    /** Contenido inline de versiones legales (lectura durante el gate). */
+    public static final String PATH_LEGAL_VERSION_CONTENT = "/api/v1/account/legal-documents/versions/";
+
+    /** Pantalla SPA de aceptación de consentimientos USR. */
+    public static final String PATH_CONSENT_GATE = "/account/consents";
+
+    /** Fallback prod: gate de consentimientos (sobrescribir con app.sso.consent-url). */
+    public static final String LEXVERTEX_CONSENT_URL = "https://www.lexvertex.cloud/account/consents";
 
     /** Ruta del actuator de Spring Cloud Gateway (solo ADMIN). */
     public static final String PATH_ACTUATOR_GATEWAY = "/actuator/gateway/**";

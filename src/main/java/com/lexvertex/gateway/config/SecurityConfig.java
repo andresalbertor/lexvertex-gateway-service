@@ -103,7 +103,31 @@ public class SecurityConfig {
                 .filter(authentication -> isBlockedByForcedPasswordChange(authentication, exchange))
                 .map(authentication -> Boolean.TRUE)
                 .defaultIfEmpty(Boolean.FALSE)
-                .flatMap(blocked -> blocked ? rejectPendingPasswordChange(exchange, target) : chain.filter(exchange));
+                .flatMap(blocked -> blocked ? rejectWithRedirectOrForbidden(exchange, target) : chain.filter(exchange));
+    }
+
+    /**
+     * Bloquea el resto de rutas cuando el JWT exige aceptación de consentimientos USR.
+     *
+     * @param consentUrl URL del gate SPA ({@code app.sso.consent-url})
+     * @return filtro reactivo
+     */
+    @Bean
+    @Order(Ordered.LOWEST_PRECEDENCE - 9)
+    WebFilter forcedConsentFilter(
+            @Value("${app.sso.consent-url:" + GatewayConstants.LEXVERTEX_CONSENT_URL + "}")
+            final String consentUrl
+    ) {
+        final String target = consentUrl == null || consentUrl.isBlank()
+                ? GatewayConstants.LEXVERTEX_CONSENT_URL
+                : consentUrl.trim();
+        return (exchange, chain) -> exchange.getPrincipal()
+                .filter(JwtAuthenticationToken.class::isInstance)
+                .cast(JwtAuthenticationToken.class)
+                .filter(authentication -> isBlockedByForcedConsent(authentication, exchange))
+                .map(authentication -> Boolean.TRUE)
+                .defaultIfEmpty(Boolean.FALSE)
+                .flatMap(blocked -> blocked ? rejectWithRedirectOrForbidden(exchange, target) : chain.filter(exchange));
     }
 
     private static boolean isBlockedByForcedPasswordChange(
@@ -120,7 +144,22 @@ public class SecurityConfig {
         return mustChange && !allowed;
     }
 
-    private static Mono<Void> rejectPendingPasswordChange(final ServerWebExchange exchange, final String target) {
+    private static boolean isBlockedByForcedConsent(
+            final JwtAuthenticationToken authentication,
+            final ServerWebExchange exchange
+    ) {
+        final boolean mustAccept = Boolean.TRUE.equals(
+                authentication.getToken().getClaim(GatewayConstants.CLAIM_MUST_ACCEPT_CONSENTS));
+        final String path = exchange.getRequest().getPath().value();
+        final boolean allowed = Strings.CS.startsWith(path, GatewayConstants.PATH_AUTH_CONSENTS)
+                || Strings.CS.equals(path, GatewayConstants.PATH_AUTH_LOGOUT)
+                || Strings.CS.equals(path, GatewayConstants.PATH_AUTH_REFRESH)
+                || Strings.CS.startsWith(path, GatewayConstants.PATH_LEGAL_VERSION_CONTENT)
+                || Strings.CS.startsWith(path, GatewayConstants.PATH_CONSENT_GATE);
+        return mustAccept && !allowed;
+    }
+
+    private static Mono<Void> rejectWithRedirectOrForbidden(final ServerWebExchange exchange, final String target) {
         final HttpHeaders headers = exchange.getRequest().getHeaders();
         if (VigilisAuthenticationEntryPoint.isVigilisRequest(exchange.getRequest())
                 || wantsHtmlNavigation(headers)) {
