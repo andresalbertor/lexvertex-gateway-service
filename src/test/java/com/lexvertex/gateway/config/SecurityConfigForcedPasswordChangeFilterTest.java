@@ -72,7 +72,7 @@ class SecurityConfigForcedPasswordChangeFilterTest {
 
     @Test
     void passesThroughWhenNoPrincipal() {
-        final ServerWebExchange ex = withPrincipal("/api/v1/clients", null, null, null);
+        final ServerWebExchange ex = withPrincipal("/api/v1/account/clients", null, null, null);
 
         assertThat(runAndReportChainCalled(ex, filter)).isTrue();
         assertThat(ex.getResponse().getStatusCode()).isNull();
@@ -80,7 +80,7 @@ class SecurityConfigForcedPasswordChangeFilterTest {
 
     @Test
     void passesThroughWhenPrincipalIsNotJwt() {
-        final ServerWebExchange ex = withPrincipal("/api/v1/clients", null, null,
+        final ServerWebExchange ex = withPrincipal("/api/v1/account/clients", null, null,
                 new UsernamePasswordAuthenticationToken("u", "p", List.of()));
 
         assertThat(runAndReportChainCalled(ex, filter)).isTrue();
@@ -88,14 +88,14 @@ class SecurityConfigForcedPasswordChangeFilterTest {
 
     @Test
     void passesThroughWhenMustChangeClaimAbsent() {
-        final ServerWebExchange ex = withPrincipal("/api/v1/clients", MediaType.TEXT_HTML_VALUE, null, jwtAuth(null));
+        final ServerWebExchange ex = withPrincipal("/api/v1/account/clients", MediaType.TEXT_HTML_VALUE, null, jwtAuth(null));
 
         assertThat(runAndReportChainCalled(ex, filter)).isTrue();
     }
 
     @Test
     void passesThroughWhenMustChangeFalse() {
-        final ServerWebExchange ex = withPrincipal("/api/v1/clients", MediaType.TEXT_HTML_VALUE, null,
+        final ServerWebExchange ex = withPrincipal("/api/v1/account/clients", MediaType.TEXT_HTML_VALUE, null,
                 jwtAuth(false));
 
         assertThat(runAndReportChainCalled(ex, filter)).isTrue();
@@ -137,7 +137,7 @@ class SecurityConfigForcedPasswordChangeFilterTest {
 
     @Test
     void forbidsJsonApiClientsWhenMustChange() {
-        final ServerWebExchange ex = withPrincipal("/api/v1/clients", MediaType.APPLICATION_JSON_VALUE, null,
+        final ServerWebExchange ex = withPrincipal("/api/v1/account/clients", MediaType.APPLICATION_JSON_VALUE, null,
                 jwtAuth(true));
 
         assertThat(runAndReportChainCalled(ex, filter)).isFalse();
@@ -147,7 +147,7 @@ class SecurityConfigForcedPasswordChangeFilterTest {
 
     @Test
     void forbidsNonHtmlNonWildcardAccept() {
-        final ServerWebExchange ex = withPrincipal("/api/v1/clients", "application/xml", null, jwtAuth(true));
+        final ServerWebExchange ex = withPrincipal("/api/v1/account/clients", "application/xml", null, jwtAuth(true));
 
         assertThat(runAndReportChainCalled(ex, filter)).isFalse();
         assertThat(ex.getResponse().getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
@@ -155,7 +155,7 @@ class SecurityConfigForcedPasswordChangeFilterTest {
 
     @Test
     void alwaysRedirectsOnVigilisHostEvenForJson() {
-        final ServerWebExchange ex = withPrincipal("/api/v1/clients", MediaType.APPLICATION_JSON_VALUE,
+        final ServerWebExchange ex = withPrincipal("/api/v1/account/clients", MediaType.APPLICATION_JSON_VALUE,
                 GatewayConstants.VIGILIS_HOST, jwtAuth(true));
 
         assertThat(runAndReportChainCalled(ex, filter)).isFalse();

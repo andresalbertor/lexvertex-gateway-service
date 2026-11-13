@@ -72,7 +72,7 @@ class VigilisAuthenticationEntryPointTest {
     @Test
     void returnsUnauthorizedOnOtherHosts() {
         final MockServerWebExchange exchange = MockServerWebExchange.from(
-                MockServerHttpRequest.get("https://api.lexvertex.cloud/api/v1/users")
+                MockServerHttpRequest.get("https://api.lexvertex.cloud/api/v1/account/users")
                         .header(GatewayConstants.HEADER_HOST, "api.lexvertex.cloud")
                         .header(HttpHeaders.ACCEPT, MediaType.TEXT_HTML_VALUE)
                         .build());
