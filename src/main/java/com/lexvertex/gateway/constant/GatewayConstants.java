@@ -161,6 +161,24 @@ public final class GatewayConstants {
     /** Prefijo de path local de Vigilís detrás del gateway (PROFILE=dev). */
     public static final String PATH_VIGILIS_PREFIX = "/vigilis";
 
+    /** Raíz del dominio para el enlace Inicio en la página de error. */
+    public static final String PATH_HOME = "/";
+
+    /** Recurso classpath de la página HTML de error del gateway. */
+    public static final String ERROR_HTML_CLASSPATH = "classpath:static/error.html";
+
+    /** Placeholder del código HTTP en la plantilla de error. */
+    public static final String ERROR_PLACEHOLDER_STATUS = "{{status}}";
+
+    /** Placeholder del título en la plantilla de error. */
+    public static final String ERROR_PLACEHOLDER_TITLE = "{{title}}";
+
+    /** Placeholder del mensaje en la plantilla de error. */
+    public static final String ERROR_PLACEHOLDER_MESSAGE = "{{message}}";
+
+    /** Placeholder del enlace de retorno en la plantilla de error. */
+    public static final String ERROR_PLACEHOLDER_HOME_HREF = "{{home_href}}";
+
     /** Query param de retorno post-login hacia la app origen. */
     public static final String QUERY_REDIRECT_URI = "redirect_uri";
 

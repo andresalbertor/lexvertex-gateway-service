@@ -21,7 +21,7 @@ import java.net.URI;
  * con {@code redirect_uri} hacia la URL solicitada; clientes API reciben 401.
  *
  * @author andres.restrepo@alternova.com
- * @version 1.1.0
+ * @version 1.1.1
  * @since 2026-10-30
  */
 @Component
@@ -75,7 +75,13 @@ public class VigilisAuthenticationEntryPoint implements ServerAuthenticationEntr
                         || Strings.CS.startsWith(path, GatewayConstants.PATH_VIGILIS_PREFIX + "/"));
     }
 
-    private static boolean wantsHtml(final ServerHttpRequest request) {
+    /**
+     * Indica si el cliente espera una respuesta HTML (navegador) frente a JSON de API.
+     *
+     * @param request petición HTTP reactiva
+     * @return {@code true} si Accept implica HTML o es ambiguo
+     */
+    public static boolean wantsHtml(final ServerHttpRequest request) {
         final String accept = request.getHeaders().getFirst(HttpHeaders.ACCEPT);
         if (accept == null || accept.isBlank()) {
             return true;
