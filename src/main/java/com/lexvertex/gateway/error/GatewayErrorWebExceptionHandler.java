@@ -29,7 +29,7 @@ import java.util.concurrent.TimeoutException;
  * Sustituye la Whitelabel de Spring Boot por una página HTML estable del gateway
  * cuando el cliente es un navegador; las APIs reciben JSON sin detalle interno.
  *
- * @author andres.restrepo@alternova.com
+ * @author andresalbertor@yahoo.com
  * @version 1.0.0
  * @since 2026-11-14
  */

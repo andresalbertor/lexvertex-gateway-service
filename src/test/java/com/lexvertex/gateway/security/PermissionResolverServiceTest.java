@@ -22,7 +22,7 @@ import static org.mockito.Mockito.when;
 /**
  * Pruebas unitarias para {@link PermissionResolverServiceImpl}.
  *
- * @author andres.restrepo@alternova.com
+ * @author andresalbertor@yahoo.com
  * @version 1.0
  * @since 2026-10-24
  */

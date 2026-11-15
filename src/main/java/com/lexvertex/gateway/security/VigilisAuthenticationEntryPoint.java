@@ -20,7 +20,7 @@ import java.net.URI;
  * Ante 401 en el host/path de Vigilís: redirige navegadores HTML al login de Lex Vertex
  * con {@code redirect_uri} hacia la URL solicitada; clientes API reciben 401.
  *
- * @author andres.restrepo@alternova.com
+ * @author andresalbertor@yahoo.com
  * @version 1.1.1
  * @since 2026-10-30
  */
