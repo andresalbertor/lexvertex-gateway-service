@@ -20,7 +20,7 @@ import java.util.Optional;
  * Filtro global de API Gateway para propagar los permisos del usuario en la cabecera
  * {@code X-User-Permissions} hacia los microservicios downstream.
  *
- * @author andres.restrepo@alternova.com
+ * @author andresalbertor@yahoo.com
  * @version 1.0.0
  * @since 2026-04-20
  */

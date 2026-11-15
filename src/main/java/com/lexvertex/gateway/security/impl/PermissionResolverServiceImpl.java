@@ -15,7 +15,7 @@ import java.util.List;
 /**
  * Implementación reactiva para la resolución de permisos asignados a roles con cacheo Caffeine.
  *
- * @author andres.restrepo@alternova.com
+ * @author andresalbertor@yahoo.com
  * @version 1.0.0
  * @since 2026-04-20
  */

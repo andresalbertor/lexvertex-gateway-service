@@ -5,7 +5,7 @@ import java.util.List;
 /**
  * Constantes centralizadas para el API Gateway reactivo del sistema.
  *
- * @author andres.restrepo@alternova.com
+ * @author andresalbertor@yahoo.com
  * @version 1.0.0
  * @since 2026-04-20
  */

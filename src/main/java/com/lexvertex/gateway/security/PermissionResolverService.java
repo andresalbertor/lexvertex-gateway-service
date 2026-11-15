@@ -7,7 +7,7 @@ import java.util.List;
 /**
  * Contrato del servicio reactivo para resolver los permisos asignados a una lista de roles.
  *
- * @author andres.restrepo@alternova.com
+ * @author andresalbertor@yahoo.com
  * @version 1.0
  * @since 2026-10-24
  */

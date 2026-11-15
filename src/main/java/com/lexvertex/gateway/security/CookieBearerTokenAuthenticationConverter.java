@@ -15,7 +15,7 @@ import reactor.core.publisher.Mono;
  * Extrae el JWT del header {@code Authorization: Bearer} o, si falta, de la cookie {@code lex_access}
  * usada para SSO hacia Vigilís y otros hosts del mismo dominio.
  *
- * @author andres.restrepo@alternova.com
+ * @author andresalbertor@yahoo.com
  * @version 1.0.0
  * @since 2026-10-30
  */

@@ -13,7 +13,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * Configuración del gestor de caché local asíncrono basado en Caffeine para flujos reactivos.
  *
- * @author andres.restrepo@alternova.com
+ * @author andresalbertor@yahoo.com
  * @version 1.0.0
  * @since 2026-04-20
  */
