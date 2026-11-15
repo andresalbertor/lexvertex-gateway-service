@@ -41,7 +41,7 @@ import java.util.List;
 /**
  * Configuración de seguridad reactiva WebFlux, validación OAuth2 JWT y políticas CORS del API Gateway.
  *
- * @author andres.restrepo@alternova.com
+ * @author andresalbertor@yahoo.com
  * @version 1.0.0
  * @since 2026-04-20
  */

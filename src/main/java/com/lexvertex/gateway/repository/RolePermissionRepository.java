@@ -13,7 +13,7 @@ import java.util.List;
 /**
  * Repositorio reactivo R2DBC para la consulta de permisos asociados a roles en el API Gateway.
  *
- * @author andres.restrepo@alternova.com
+ * @author andresalbertor@yahoo.com
  * @version 1.0.0
  * @since 2026-04-20
  */

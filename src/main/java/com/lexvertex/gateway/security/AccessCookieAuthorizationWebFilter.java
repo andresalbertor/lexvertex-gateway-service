@@ -17,7 +17,7 @@ import reactor.core.publisher.Mono;
  * WebFilter anterior a Spring Security: si no hay {@code Authorization}, copia
  * {@code lex_access} a {@code Authorization: Bearer …} para navegación HTML (Vigilís).
  *
- * @author andres.restrepo@alternova.com
+ * @author andresalbertor@yahoo.com
  * @version 1.0.0
  * @since 2026-10-31
  */
